@@ -1,6 +1,8 @@
 package org.example.cdc.metainformation;
 
 import org.example.cdc.PostgresConnectionLocal;
+import org.example.cdc.decode.StringParser;
+import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -9,8 +11,11 @@ import java.sql.SQLException;
 
 import static org.example.cdc.decode.DecodePgoutConstant.NEW_VALUE_REPLACED;
 import static org.example.cdc.decode.DecodePgoutConstant.UPDATE_NEW_VALUE_SEQUENCE;
+import static org.slf4j.LoggerFactory.getLogger;
 
 public class PgOutput {
+
+    private static final Logger logger = getLogger(StringParser.class);
 
     ByteBuffer buffer;
 
@@ -39,8 +44,11 @@ public class PgOutput {
                 int offset = buffer.arrayOffset();
                 byte[] source = buffer.array();
                 int length = source.length - offset;
-                return (new String(source, offset, length, StandardCharsets.UTF_8));
+                var strR  = (new String(source, offset, length, StandardCharsets.UTF_8));
 
+                var relationDto = StringParser.crateRelationMetaInfo(strR);
+                logger.info("RelationDto {}", relationDto);
+                return strR;
             case 'U':
                 var relationIdU = cobyBuffer.getInt();
                 System.out.println(relationIdU);

@@ -64,7 +64,6 @@ public class TestLocalCDC {
             System.out.println(new String(source, offset, length, StandardCharsets.UTF_8));
 
 
-
             stream.setAppliedLSN(stream.getLastReceiveLSN());
             stream.setFlushedLSN(stream.getLastReceiveLSN());
         }

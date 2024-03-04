@@ -18,7 +18,7 @@ public class StringParser {
 
     public static void main(String[] args) {
         String input1 = "R\u0000\u0000Agpublic\u0000naruto\u0000f\u0000\u0005\u0001shinoby\u0000\u0000\u0000\u0004\u0013����\u0001age\u0000\u0000\u0000\u0006�����\u0001sys_id\u0000\u0000\u0000\u0000\u0014����\u0001change_author\u0000\u0000\u0000\u0004\u0013����\u0001update_date_time\u0000\u0000\u0000\u0004Z����";
-
+      //  String input2 = "R \u0001�upublic narutof f \u0005\u0001shinoby   \u0004\u0013����\u0001age   \u0006�����\u0001sys_id    \u0014����\u0001change_author   \u0004\u0013����\u0001update_date_time   \u0004Z����";
         // relation marker is 5 bytes and eq to "R\u0000\u0000Ag"
         String newString = input1.substring(5);
         logger.info("RelationMsg {}", newString);
@@ -29,7 +29,8 @@ public class StringParser {
     }
 
 
-    private static RelationMetaInfo crateRelationMetaInfo(String relationMsg) {
+    public static RelationMetaInfo crateRelationMetaInfo(String relationMsg) {
+        relationMsg = relationMsg.substring(5); // delete 5 byte
         String schema = decodeRelationMsg(relationMsg);
         logger.info("Schema {}", schema);
         //one byte between schema and table name in UTF-8 code
@@ -88,11 +89,11 @@ public class StringParser {
             // Извлечение колонок
             List<String> columns = extractColumns(input.substring(matcher.end()));
 
-            System.out.println("Schema: " + schema);
-            System.out.println("Table Name: " + tableName);
-            System.out.println("Columns: " + columns);
+            logger.info("Schema: " + schema);
+            logger.info("Table Name: " + tableName);
+            logger.info("Columns: " + columns);
         } else {
-            System.out.println("No match found");
+            logger.info("No match found");
         }
     }
 
