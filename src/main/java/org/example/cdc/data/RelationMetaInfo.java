@@ -5,8 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @Data
 @Builder
@@ -16,6 +16,6 @@ public class RelationMetaInfo {
 
     private final String schemaName;
     private final String tableName;
-    private List<String> columns = new LinkedList<>();
+    private Map<String, Column> columnsMap = new LinkedHashMap<>();
 
 }

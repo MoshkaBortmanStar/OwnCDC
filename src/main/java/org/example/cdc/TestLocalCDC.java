@@ -1,9 +1,10 @@
 package org.example.cdc;
 
-import org.example.cdc.metainformation.PgOutput;
+import org.example.cdc.config.PostgresConnectionFactoryImpl;
+import org.example.cdc.decode.PgoutHendler;
+import org.postgresql.PGConnection;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 
@@ -14,7 +15,7 @@ public class TestLocalCDC {
 
 
     public static void main(String[] args) throws SQLException, InterruptedException {
-        var connection = PostgresConnectionLocal.INSTANCE.getConnection();
+        var connection = PostgresConnectionFactoryImpl.INSTANCE.getConnection();
         /*connection.getReplicationAPI()
                 .createReplicationSlot()
                 .logical()
@@ -33,18 +34,29 @@ public class TestLocalCDC {
                 .withSlotOption("include-lsn", true)
                 .start();*/
 
+     /*   String createPublicationQuery = "CREATE PUBLICATION  cdc_migration_data;";
+        try (java.sql.Statement stmt = connection.createStatement()) {
+            // Выполнение SQL запроса для создания публикации
+            stmt.execute(createPublicationQuery);
+            System.out.println("Publication created successfully");
+        }*/
+        var streamConnection = connection.unwrap(PGConnection.class);
+       /* streamConnection.getReplicationAPI()
+                .createReplicationSlot()
+                .logical()
+                .withSlotName("cdc_my_test")
+                .withOutputPlugin("pgoutput")
+                .make();*/
 
-
-
-        var stream = connection.getReplicationAPI()
+        var stream = streamConnection.getReplicationAPI()
                 .replicationStream()
                 .logical()
-                .withSlotName("cdc_local_slot_1")
+                .withSlotName("cdc_my_test")
                 .withSlotOption("proto_version", "1")
                 .withSlotOption("publication_names", "cdc_migration_data")
                 .start();
 
-        while (true) {
+       while (true) {
 
             ByteBuffer msg = stream.readPending();
             if (msg == null) {
@@ -52,17 +64,9 @@ public class TestLocalCDC {
                 continue;
             }
 
+           //System.out.println(new String(msg.array(), StandardCharsets.UTF_8));
 
-
-            PgOutput pgOutput = new PgOutput(msg);
-            System.out.println(pgOutput.toString());
-
-            var cobyBuffer = msg.duplicate();
-            int offset = cobyBuffer.arrayOffset();
-            byte[] source = cobyBuffer.array();
-            int length = source.length - offset;
-            System.out.println(new String(source, offset, length, StandardCharsets.UTF_8));
-
+           PgoutHendler.decodeHandle(msg, rowChangesStructure -> System.out.println(rowChangesStructure.toString()));
 
             stream.setAppliedLSN(stream.getLastReceiveLSN());
             stream.setFlushedLSN(stream.getLastReceiveLSN());
